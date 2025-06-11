@@ -57,7 +57,7 @@ class MainParser(Helper):
 
 def main():
     return MainParser(
-        location='farmacia'
+        location='your location'
     )
 
 
