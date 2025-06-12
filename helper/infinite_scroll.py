@@ -45,7 +45,7 @@ def scroll_custom_div(driver: WebDriver, pause_time=2, max_scrolls=50):
         # Wait for the target div to be present
         scrollable_div = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((
-                By.CSS_SELECTOR, "div.bJzME:nth-child(2) > div:nth-child(1) > div:nth-child(1)"
+                By.CLASS_NAME, "DVeyrd"
             ))
         )
 
