@@ -38,19 +38,14 @@ class ParserItemInfo(Helper):
         #     sorted_filename=f"{self.source_file.split("/")[0]}/cars_Sorted_link.txt",
         # )
 
-        self.iter_by_item()
+        self.save_to_json()
 
-    def iter_by_item(self):
-        try:
-            with open(self.source_file, mode='r') as file:
-                urls = file.read().split()
-                for url in urls:
-                    self.random_pause_code(start=1, stop=4)
-                    self.driver_helper.send_by_url(url=url)
-                    self.save_to_json()
-        except FileNotFoundError:
-            self.driver_helper.close_driver()
-            print('File not found')
+    @staticmethod
+    def iter_by_item(filename=''):
+        # iteration by post link form list
+        with open(file=filename, mode='r') as file:
+            source = file.read().split()
+            return source  # output list
 
     def get_title(self):
         self.random_pause_code(start=1, stop=6)
@@ -66,46 +61,47 @@ class ParserItemInfo(Helper):
 
 
     def save_to_json(self):
-        scroll_custom_div(driver=self.driver, pause_time=6, max_scrolls=2)
-        try:
-            if self.checker.class_exists(class_name='Io6YTe'):
-                elements = self.driver.find_elements(By.CLASS_NAME, 'Io6YTe')
-                values = [el.text for el in elements]
-                keys = ['address', 'website', 'phone', 'code plus']
+        for url in self.iter_by_item(filename=self.source_file):
+            self.random_pause_code(start=1,stop=6)
+            self.driver_helper.send_by_url(url=url)
+            scroll_custom_div(driver=self.driver, pause_time=6, max_scrolls=2)
+            self.random_pause_code(start=1,stop=6)
+            try:
+                if self.checker.class_exists(class_name='Io6YTe'):
+                    elements = self.driver.find_elements(By.CLASS_NAME, 'Io6YTe')
+                    values = [el.text for el in elements]
+                    keys = ['address', 'website', 'phone', 'code plus']
 
-                data_dict = {'title': self.get_title()}
-                data_dict.update(dict(zip(keys, values[:len(keys)])))
+                    data_dict = {'title': self.get_title()}
+                    data_dict.update(dict(zip(keys, values[:len(keys)])))
 
-                # Prepare save path
-                base_name = os.path.splitext(os.path.basename(self.source_file))[0]
-                folder = os.path.dirname(self.source_file)
-                json_path = os.path.join(folder, f"{base_name}.json")
+                    # Prepare save path
+                    base_name = os.path.splitext(os.path.basename(self.source_file))[0]
+                    folder = os.path.dirname(self.source_file)
+                    json_path = os.path.join(folder, f"{base_name}.json")
 
-                # Append to existing JSON array or create a new one
-                if os.path.exists(json_path):
-                    with open(file=json_path, mode='r+', encoding='utf-8') as file:
-                        try:
-                            existing_data = json.load(file)
-                        except json.JSONDecodeError:
-                            existing_data = []
+                    # Append to existing JSON array or create a new one
+                    if os.path.exists(json_path):
+                        with open(file=json_path, mode='r+', encoding='utf-8') as file:
+                            try:
+                                existing_data = json.load(file)
+                            except json.JSONDecodeError:
+                                existing_data = []
 
-                        existing_data.append(data_dict)
-                        file.seek(0)
-                        json.dump(existing_data, file, indent=4, ensure_ascii=False)
-                        file.truncate()
+                            existing_data.append(data_dict)
+                            file.seek(0)
+                            json.dump(existing_data, file, indent=4, ensure_ascii=False)
+                            file.truncate()
+                    else:
+                        with open(file=json_path, mode='w', encoding='utf-8') as file:
+                            json.dump([data_dict], file, indent=4, ensure_ascii=False)
+
                 else:
-                    with open(file=json_path, mode='w', encoding='utf-8') as file:
-                        json.dump([data_dict], file, indent=4, ensure_ascii=False)
+                    print('Data class not found.')
 
-            else:
-                print('Data class not found.')
-
-        except NoSuchElementException:
-            print('Main data element not found.')
-            self.random_pause_code(start=1, stop=6)
-        return self.driver_helper.close_driver()
-
-
+            except NoSuchElementException:
+                print('Main data element not found.')
+        return None
 
 
 def main():
